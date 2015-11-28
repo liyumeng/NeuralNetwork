@@ -15,7 +15,7 @@ const int BMPWIDTH=256;
 const int BMPHEIGHT=256;
 const int N=512;//码本规模
 const int L=16;//矢量维数
-const double STEP=0.01;//学习步长
+const double STEP=0.001;//学习步长
 
 void readBmp(const char * iBmpFile, unsigned char *BmpHeader, unsigned char **sourcePixel);
 void saveBmp(const char *oBmpFile, unsigned char *BmpHeader, unsigned char **targetPixel);

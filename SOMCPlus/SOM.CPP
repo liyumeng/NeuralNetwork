@@ -77,9 +77,11 @@ void main()
 	memset(wtemp, 0, sizeof(double)*L);
 
 
-	for (int k = 0; k < 100; k++)
+	for (int k = 0; k < 50; k++)
 	{
 		int maxDis = 0;
+		int maxUpdateCount = 0;
+		int minUpdateCount = 1000000;
 		//ÑµÁ·ÍøÂç
 		for (int c = 0; c < BMPWIDTH*BMPHEIGHT / 16; c++)
 		{
@@ -103,7 +105,7 @@ void main()
 
 			for (j = 0; j < N; j++)
 			{
-				if (dtemp[j] < 100)
+				if (dtemp[j] < 50)
 				{
 					for (i = 0; i < L; i++)
 					{
@@ -114,6 +116,7 @@ void main()
 
 			if (d[q] > maxDis)
 				maxDis = d[q];
+			
 		}
 		cout << maxDis << endl;
 
