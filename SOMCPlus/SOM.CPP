@@ -76,12 +76,10 @@ void main()
 	double * wtemp = new double[L];
 	memset(wtemp, 0, sizeof(double)*L);
 
-
-	for (int k = 0; k < 50; k++)
+	double step = 0.01;
+	for (int k = 0; k < 1; k++)
 	{
 		int maxDis = 0;
-		int maxUpdateCount = 0;
-		int minUpdateCount = 1000000;
 		//训练网络
 		for (int c = 0; c < BMPWIDTH*BMPHEIGHT / 16; c++)
 		{
@@ -91,34 +89,29 @@ void main()
 				d[j] = 0;
 				for (i = 0; i < L; i++)
 					d[j] += (vectorSample[c][i] - W[j][i])*(vectorSample[c][i] - W[j][i]);
-				d[j] = sqrt(d[j]);
 			}
 			int q = findMin(d);
 			out[q] = 1;
 
+			//更新权重矢量
 			for (j = 0; j < N; j++)
 			{
-				dtemp[j] = 0;
-				for (i = 0; i < L; i++)
-					dtemp[j] += fabs(W[j][i] - W[q][i]);
-			}
-
-			for (j = 0; j < N; j++)
-			{
-				if (dtemp[j] < 50)
+				if (abs(j - q) < 3)
 				{
 					for (i = 0; i < L; i++)
 					{
-						W[j][i] += STEP*(vectorSample[c][i] - W[j][i]);
+						W[j][i] += step*(vectorSample[c][i] - W[j][i]);
 					}
 				}
 			}
 
 			if (d[q] > maxDis)
 				maxDis = d[q];
-			
+
 		}
-		cout << maxDis << endl;
+		if (step > 0.003)
+			step = step*0.96;
+		cout << maxDis << "," << step << endl;
 
 	}
 	int useNum = 0;
