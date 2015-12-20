@@ -4,6 +4,8 @@
 #include <fstream>
 #include "AnswerModel.h"
 #include <algorithm>
+#include<direct.h>
+#include <string>
 
 struct Xgreater
 {
@@ -36,6 +38,7 @@ BPNetwork::BPNetwork(int layerCount, int * unitCountList, double alpha, double e
 	LayerCount = layerCount;
 	LayerList = static_cast<BPLayer**>(malloc(layerCount*sizeof(BPLayer*)));
 	Times = 0;
+	DropoutEnabled = 1;
 	MaxTimes = INT32_MAX;
 	//实际层号i从1开始，输入序列X即为第0层的输出NextInput,第0层也不必激活
 	//第一层的输入为X序列，
@@ -46,7 +49,7 @@ BPNetwork::BPNetwork(int layerCount, int * unitCountList, double alpha, double e
 	LayerList[1] = new BPLayer(unitCountList[0], unitCountList[1], this);
 	for (int i = 2; i < layerCount; i++)
 	{
-		LayerList[i] = new BPLayer(unitCountList[i - 1], unitCountList[i], this, 1);
+		LayerList[i] = new BPLayer(unitCountList[i - 1], unitCountList[i], this, DropoutEnabled);
 	}
 	InputLayer = LayerList[1];//负责激活第一隐层的值
 	//其中LayerList[1]->Output为第一隐层未激活值
@@ -125,41 +128,45 @@ double BPNetwork::Train(double* input, double* output)
 
 void BPNetwork::TrainUntilConvergence(SampleLoader* loader)
 {
+	std::ofstream dst("中规模样本.csv");
+
 	double e = 10000;
 	double laste = 0;
 	Times = 0;
 	int sameCount = 0;
 	int count = 0;
 	double lastf = FastTest(loader->TestLoader);
-	while (e > 1 && Times < this->MaxTimes)
+	while (e > 1 && Times < this->MaxTimes&&count <= 50)
 	{
 		e = 0;
 		for (int i = 0; i < loader->LineCount; i++)
 		{
 			e += this->Train(loader->Inputs[i], loader->Outputs[i]);
 		}
-		std::cout << Times << ":" << e << "," << this->Alpha << std::endl;
+		//std::cout << Times << ":" << e << "," << this->Alpha << std::endl;
 
-		this->Alpha *= 0.999;
+		if (this->Alpha > 0.01)
+			this->Alpha *= 0.96;
 
-		if (abs(laste - e) < 0.0005)	//5次连续相同，则跳出循环
+		if (abs(laste - e) < 0.05)	//5次连续相同，则跳出循环
 		{
 			sameCount++;
 			if (sameCount > 5) break;
 		}
 		else
 			sameCount = 0;
+
 		laste = e;
+		double f = FastTest(loader->TestLoader);
 		count++;
-		if (count % 3 == 0)
-		{
-			double f = FastTest(loader->TestLoader);
-			std::cout << "测试集f值：" << f << std::endl;
-			if (lastf - f > 5)
-				break;
-			this->Save("t");
-		}
+
+		dst << count << "," << e << "," << f << std::endl;
+		std::cout << count << "," << e << "," << f << std::endl;
+
+		std::string numStr = "dat/" + std::to_string(count);
+		this->Save(numStr.c_str());
 	}
+	dst.close();
 }
 
 double* BPNetwork::Test(double* input)
@@ -224,7 +231,6 @@ double BPNetwork::FastTest(SampleLoader* loader)
 {
 	int rightCount = 0;
 	int guessRightCount = 0;
-
 	for (int i = 0; i < loader->LineCount; i++)
 	{
 		this->Test(loader->Inputs[i]);
@@ -241,12 +247,13 @@ double BPNetwork::FastTest(SampleLoader* loader)
 	return 2.0*rightCount / (guessRightCount + loader->PositiveCount);
 }
 
-void BPNetwork::Save(char* dirname)
+void BPNetwork::Save(const char* dirname)
 {
 	char tmp[256];
+	mkdir(dirname);
 	for (int i = 0; i < LayerCount; i++)
 	{
-		sprintf(tmp, "%s%d.csv", dirname, i);
+		sprintf(tmp, "%s/%d.csv", dirname, i);
 		LayerList[i]->Save(tmp);
 	}
 	std::cout << "权重矩阵输出完毕。" << std::endl;
@@ -257,7 +264,7 @@ void BPNetwork::Load(char* dirname)
 	char tmp[256];
 	for (int i = 0; i < LayerCount; i++)
 	{
-		sprintf(tmp, "%s%d.csv", dirname, i);
+		sprintf(tmp, "%s/%d.csv", dirname, i);
 		LayerList[i]->Load(tmp);
 	}
 	std::cout << "权重矩阵载入完毕。" << std::endl;

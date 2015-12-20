@@ -41,7 +41,7 @@ BPLayer::BPLayer(int inputSize, int outputSize, BPNetwork* net, int dropoutEnabl
 
 	InputSize = inputSize;
 	OutputSize = outputSize;
-	BatchSize = 32;
+	BatchSize = 16;
 	Net = net;
 
 	//留出一个常量空间，最后一个元素是常量
@@ -128,7 +128,7 @@ double* BPLayer::TestingProcess()
 		}
 		//隐藏层节点输出衰减1-dropoutFraction
 		if (DropoutEnabled)
-			Output[j] *= (1 - m_dropoutFraction);	
+			Output[j] *= (1 - m_dropoutFraction);
 	}
 	return Output;
 }
@@ -172,16 +172,15 @@ void BPLayer::UpdateWeight()
 		{
 			for (int i = 0; i <= InputSize; i++)
 			{
-				/*
-				lastDelta = LastDeltaWeight[j][i];
-				delta = DeltaWeight[j][i] / m_indexInBatch;
 
-				delta = Net->Alpha *delta + Net->Eta* lastDelta;
-				LastDeltaWeight[j][i] = delta;
-				DeltaWeight[j][i] = 0;
+				//lastDelta = LastDeltaWeight[j][i];
+				//delta = DeltaWeight[j][i] / m_indexInBatch;
 
-				Weight[j][i] -= delta;
-				*/
+				//delta = Net->Alpha *delta + Net->Eta* lastDelta;
+				//LastDeltaWeight[j][i] = delta;
+				//DeltaWeight[j][i] = 0;
+
+				//Weight[j][i] -= delta;
 
 				double g = DeltaWeight[j][i] / m_indexInBatch;
 				m_g2[j][i] = 0.95*m_g2[j][i] + 0.05*g*g;

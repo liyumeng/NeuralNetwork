@@ -18,7 +18,7 @@ public:
 	double* Test(double* input);
 	void Test(SampleLoader* loader);
 	double FastTest(SampleLoader* loader);
-	void Save(char* dirname);
+	void Save(const char* dirname);
 	void Load(char* dirname);
 	void Predict(SampleLoader* loader, char* filename);
 	//训练直到收敛
@@ -42,6 +42,6 @@ public:
 
 	long long Times = 0;	//迭代次数
 	long long MaxTimes;
-
+	int DropoutEnabled;
 };
 

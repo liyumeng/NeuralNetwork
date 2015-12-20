@@ -54,7 +54,8 @@ void SampleLoader::BatchOpen()
 ///返回实际读到的行数
 int SampleLoader::BatchReadLines(int count)
 {
-	float userid, itemid, online, output, value;
+	int userid, itemid, label;
+	double value;
 
 	Clear();
 	if (CurrentLineCount >= LineCount)
@@ -78,13 +79,13 @@ int SampleLoader::BatchReadLines(int count)
 	{
 		m_file->read((char*)&userid, 4);
 		m_file->read((char*)&itemid, 4);
-		m_file->read((char*)&output, 4);
-		m_file->read((char*)&online, 4);
+		m_file->read((char*)&label, 4);
+		outputs[i][0] = label;
 
-		outputs[i][0] = output;
+		m_file->read((char*)&value, 8);	//读取是否是o2o特征
 		for (int m = 0; m < InputSize; m++)
 		{
-			m_file->read((char*)&value, 4);
+			m_file->read((char*)&value, 8);
 			inputs[i][m] = value;
 		}
 		SampleModel model(userid, itemid);
@@ -135,7 +136,7 @@ void SampleLoader::EnableTestLoader()
 
 	TestLoader->Inputs = &Inputs[LineCount];
 	TestLoader->Outputs = &Outputs[LineCount];
-	for (int i = LineCount; i < RawLineCount;i++)
+	for (int i = LineCount; i < RawLineCount; i++)
 	{
 		TestLoader->Items.push_back(Items[i]);
 	}
@@ -145,9 +146,9 @@ void SampleLoader::EnableTestLoader()
 void SampleLoader::UpdatePositiveCount()
 {
 	PositiveCount = 0;
-	for (int i = 0; i < LineCount;i++)
+	for (int i = 0; i < LineCount; i++)
 	{
-		if(Outputs[i][0]>0.5)
+		if (Outputs[i][0]>0.5)
 		{
 			PositiveCount++;
 		}
